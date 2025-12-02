@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\CandidateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: CandidateRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -33,11 +35,19 @@ class Candidate
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $experienceDetails = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $availabilityDate = null;
+
+    #[ORM\Column]
+    private ?bool $isAvailableImmediately = false;
+
+    #[ORM\Column]
+    private ?bool $consentRGPD = false;
 
     #[ORM\Column(length: 20)]
     private ?string $status = 'draft';
+
+    private string $currentStep = 'personal';
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
@@ -127,9 +137,33 @@ class Candidate
         return $this->availabilityDate;
     }
 
-    public function setAvailabilityDate(\DateTimeInterface $availabilityDate): static
+    public function setAvailabilityDate(?\DateTimeInterface $availabilityDate): static
     {
         $this->availabilityDate = $availabilityDate;
+
+        return $this;
+    }
+
+    public function isAvailableImmediately(): ?bool
+    {
+        return $this->isAvailableImmediately;
+    }
+
+    public function setIsAvailableImmediately(bool $isAvailableImmediately): static
+    {
+        $this->isAvailableImmediately = $isAvailableImmediately;
+
+        return $this;
+    }
+
+    public function isConsentRGPD(): ?bool
+    {
+        return $this->consentRGPD;
+    }
+
+    public function setConsentRGPD(bool $consentRGPD): static
+    {
+        $this->consentRGPD = $consentRGPD;
 
         return $this;
     }
@@ -142,6 +176,18 @@ class Candidate
     public function setStatus(string $status): static
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    public function getCurrentStep(): string
+    {
+        return $this->currentStep;
+    }
+
+    public function setCurrentStep(string $currentStep): static
+    {
+        $this->currentStep = $currentStep;
 
         return $this;
     }
@@ -181,5 +227,15 @@ class Candidate
     public function setUpdatedAtValue(): void
     {
         $this->updatedAt = new \DateTimeImmutable();
+    }
+
+    #[Assert\Callback(groups: ['availability'])]
+    public function validate(ExecutionContextInterface $context): void
+    {
+        if (!$this->isAvailableImmediately && null === $this->availabilityDate) {
+            $context->buildViolation('Veuillez indiquer une date de disponibilité ou cocher "Disponible immédiatement".')
+                ->atPath('availabilityDate')
+                ->addViolation();
+        }
     }
 }

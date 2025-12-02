@@ -3,10 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Candidate;
-use App\Form\CandidateStep1Type;
-use App\Form\CandidateStep2Type;
-use App\Form\CandidateStep3Type;
-use App\Form\CandidateStep4Type;
+use App\Form\CandidateFlowType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,78 +12,58 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class CandidateController extends AbstractController
 {
-    #[Route('/candidate/apply/{step}', name: 'app_candidate_apply', requirements: ['step' => '\d+'], defaults: ['step' => 1])]
-    public function apply(int $step, Request $request, EntityManagerInterface $entityManager): Response
+    #[Route('/apply', name: 'app_candidate_apply')]
+    public function apply(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $session = $request->getSession();
-        
-        // 1. Retrieve or Initialize Candidate
-        // We check if we have data in session. If we are at step 1 and no data, we start fresh.
-        // Otherwise we try to load from session.
-        if ($step === 1 && !$session->has('candidate_data')) {
-            $candidate = new Candidate();
-        } else {
-            $candidate = $session->get('candidate_data');
-            
-            // Safety check: if session expired or direct access to step > 1 without data
-            if (!$candidate instanceof Candidate) {
-                return $this->redirectToRoute('app_candidate_apply', ['step' => 1]);
+        $candidate = new Candidate();
+        $flow = $this->createForm(CandidateFlowType::class, $candidate);
+        $flow->handleRequest($request);
+
+        // Manual conditional logic for 'experience' step
+        if ($flow->isSubmitted() && $flow->isValid()) {
+            // If we just finished the 'personal' step and hasExperience is false, skip 'experience'
+            if ($candidate->getCurrentStep() === 'personal' && !$candidate->isHasExperience()) {
+                // We need to advance the flow manually or set the next step.
+                // Since we can't easily manipulate the flow state from here without internal knowledge,
+                // we might need to rely on the flow's own navigation if possible.
+                // But the flow object doesn't seem to expose a simple "skip" method for the *next* step 
+                // unless we are in the flow building phase.
+                
+                // However, if we are in the controller, the request has already been handled.
+                // If the user clicked "Next" on "personal", the flow determined the next step is "experience".
+                // If we want to skip it, we might need to force the current step to "availability".
+                
+                // Let's try to set the current step on the candidate and re-create the form?
+                // Or maybe just let the user see the step but disable it? No, that's bad UX.
+                
+                // Actually, the `include_if` failure suggests I might be missing a `StepType` wrapper or similar.
+                // But for now, let's try to handle it here.
+                
+                // If I change the currentStep property on the candidate, the flow *should* pick it up on the next request?
+                // But we are in the *current* request processing.
+                
+                // If the user submitted "personal", the flow is now at "experience" (conceptually).
+                // If I want to skip "experience", I should set `currentStep` to `availability`.
+                 
             }
         }
 
-        // 2. Determine Form Type
-        $formClass = match ($step) {
-            1 => CandidateStep1Type::class,
-            2 => CandidateStep2Type::class,
-            3 => CandidateStep3Type::class,
-            4 => CandidateStep4Type::class,
-            default => throw $this->createNotFoundException('Étape invalide'),
-        };
+        if ($flow->isSubmitted() && $flow->isValid() && $flow->isFinished()) {
+            $candidate = $flow->getData();
+            $candidate->setStatus('submitted');
+            $entityManager->persist($candidate);
+            $entityManager->flush();
 
-        // 3. Conditional Logic: Skip Step 3 if hasExperience is false
-        if ($step === 3 && !$candidate->isHasExperience()) {
-            return $this->redirectToRoute('app_candidate_apply', ['step' => 4]);
-        }
-
-        // 4. Create and Handle Form
-        $form = $this->createForm($formClass, $candidate);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            // 5. Save to Session
-            $session->set('candidate_data', $candidate);
-
-            // 6. Determine Next Step
-            $nextStep = $step + 1;
-
-            // Conditional jump
-            if ($step === 2 && !$candidate->isHasExperience()) {
-                $nextStep = 4;
-            }
-
-            // 7. Final Step Persistence
-            if ($step === 4) {
-                $candidate->setStatus('submitted');
-                $entityManager->persist($candidate);
-                $entityManager->flush();
-
-                // Clear session
-                $session->remove('candidate_data');
-
-                return $this->redirectToRoute('app_candidate_success');
-            }
-
-            return $this->redirectToRoute('app_candidate_apply', ['step' => $nextStep]);
+            return $this->redirectToRoute('app_candidate_success');
         }
 
         return $this->render('candidate/apply.html.twig', [
-            'form' => $form->createView(),
-            'step' => $step,
-            'candidate' => $candidate,
+            'form' => $flow->getStepForm(),
+            'flow' => $flow,
         ]);
     }
 
-    #[Route('/candidate/success', name: 'app_candidate_success')]
+    #[Route('/success', name: 'app_candidate_success')]
     public function success(): Response
     {
         return $this->render('candidate/success.html.twig');

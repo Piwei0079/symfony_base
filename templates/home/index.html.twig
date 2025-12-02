@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-16 text-center">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Bienvenue sur notre portail de recrutement</h1>
+    <p class="text-xl mb-12 text-gray-600">Nous sommes ravis de votre intérêt. Postulez dès maintenant pour rejoindre notre équipe.</p>
+    
+    <a href="{{ path('app_candidate_apply') }}" class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg transition duration-300">
+        Postuler maintenant
+    </a>
+</div>
+{% endblock %}
