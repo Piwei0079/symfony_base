@@ -47,7 +47,7 @@ class Candidate
     #[ORM\Column(length: 20)]
     private ?string $status = 'draft';
 
-    private string $currentStep = 'personal';
+    private string $currentStep = 'userInfo';
 
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;

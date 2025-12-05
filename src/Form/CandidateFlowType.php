@@ -13,28 +13,12 @@ class CandidateFlowType extends AbstractFlowType
     public function buildFormFlow(FormFlowBuilderInterface $builder, array $options): void
     {
         $builder
-            ->addStep('personal', CandidateStep1Type::class, [
-                'inherit_data' => true,
-                'label' => 'Informations personnelles',
-            ])
-            ->addStep('experience', CandidateStep2Type::class, [
-                'inherit_data' => true,
-                'label' => 'Expérience',
-            ])
-            ->addStep('availability', CandidateStep3Type::class, [
-                'inherit_data' => true,
-                'label' => 'Disponibilité',
-            ])
-            ->addStep('consent', CandidateStep4Type::class, [
-                'inherit_data' => true,
-                'label' => 'Consentement',
-            ])
-            ->addStep('summary', CandidateSummaryType::class, [
-                'inherit_data' => true,
-                'label' => 'Résumé',
-            ])
-            ->add('navigator', NavigatorFlowType::class)
-        ;
+            ->addStep('userInfo', CandidateStep1Type::class, ['inherit_data' => true])
+            ->addStep('experienceDetails', CandidateStep2Type::class, ['inherit_data' => true], fn(Candidate $data) => !$data->isHasExperience())
+            ->addStep('availability', CandidateStep3Type::class, ['inherit_data' => true])
+            ->addStep('consentRGPD', CandidateStep4Type::class, ['inherit_data' => true]);
+        $builder->addStep('review', ReviewType::class, ['inherit_data' => true]);
+        $builder->add('navigator', NavigatorFlowType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

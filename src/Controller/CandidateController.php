@@ -21,8 +21,8 @@ class CandidateController extends AbstractController
 
         // Manual conditional logic for 'experience' step
         if ($flow->isSubmitted() && $flow->isValid()) {
-            // If we just finished the 'personal' step and hasExperience is false, skip 'experience'
-            if ($candidate->getCurrentStep() === 'personal' && !$candidate->isHasExperience()) {
+            // If we just finished the 'userInfo' step and hasExperience is false, skip 'experienceDetails'
+            if ($candidate->getCurrentStep() === 'userInfo' && !$candidate->isHasExperience()) {
                 // We need to advance the flow manually or set the next step.
                 // Since we can't easily manipulate the flow state from here without internal knowledge,
                 // we might need to rely on the flow's own navigation if possible.
@@ -30,7 +30,7 @@ class CandidateController extends AbstractController
                 // unless we are in the flow building phase.
                 
                 // However, if we are in the controller, the request has already been handled.
-                // If the user clicked "Next" on "personal", the flow determined the next step is "experience".
+                // If the user clicked "Next" on "userInfo", the flow determined the next step is "experienceDetails".
                 // If we want to skip it, we might need to force the current step to "availability".
                 
                 // Let's try to set the current step on the candidate and re-create the form?
@@ -42,7 +42,7 @@ class CandidateController extends AbstractController
                 // If I change the currentStep property on the candidate, the flow *should* pick it up on the next request?
                 // But we are in the *current* request processing.
                 
-                // If the user submitted "personal", the flow is now at "experience" (conceptually).
+                // If the user submitted "userInfo", the flow is now at "experienceDetails" (conceptually).
                 // If I want to skip "experience", I should set `currentStep` to `availability`.
                  
             }

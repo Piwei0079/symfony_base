@@ -1,0 +1,47 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Détails de la tâche{% endblock %}
+
+{% block body %}
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="p-8">
+            <div class="flex justify-between items-start mb-6">
+                <h1 class="text-3xl font-bold text-gray-800">{{ task.name }}</h1>
+                <a href="{{ path('app_task_index') }}" class="text-gray-500 hover:text-gray-700">
+                    Retour
+                </a>
+            </div>
+
+            <div class="mb-6">
+                <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Description</h3>
+                <p class="text-gray-700 whitespace-pre-line">{{ task.description }}</p>
+            </div>
+
+            <div class="border-t border-gray-200 pt-6 flex justify-between items-center text-sm text-gray-600">
+                <div>
+                    <p>Auteur : <span class="font-semibold">{{ task.author.email }}</span></p>
+                    <p>Créé le : {{ task.createdAt|date('d/m/Y H:i') }}</p>
+                    <p>Modifié le : {{ task.updatedAt|date('d/m/Y H:i') }}</p>
+                </div>
+            </div>
+
+            <div class="mt-8 flex space-x-4">
+                {% if is_granted('EDIT', task) %}
+                    <a href="{{ path('app_task_edit', {'id': task.id}) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+                        Modifier
+                    </a>
+                {% endif %}
+                {% if is_granted('DELETE', task) %}
+                    <form method="post" action="{{ path('app_task_delete', {'id': task.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?');">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ task.id) }}">
+                        <button class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                            Supprimer
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

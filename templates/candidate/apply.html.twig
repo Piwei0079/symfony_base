@@ -9,7 +9,7 @@
     {# Progress Bar #}
     <div class="mb-8">
         <div class="flex justify-between mb-2">
-            {% for step in ['personal', 'experience', 'availability', 'consent', 'summary'] %}
+            {% for step in ['userInfo', 'experienceDetails', 'availability', 'consentRGPD', 'review'] %}
                 <div class="text-sm font-medium {{ flow.vars.data.currentStep == step ? 'text-blue-600' : 'text-gray-500' }}">
                     {{ loop.index }}
                 </div>
@@ -17,11 +17,11 @@
         </div>
         <div class="w-full bg-gray-200 rounded-full h-2.5">
             {% set currentStepIndex = 0 %}
-            {% if flow.vars.data.currentStep == 'personal' %}{% set currentStepIndex = 1 %}{% endif %}
-            {% if flow.vars.data.currentStep == 'experience' %}{% set currentStepIndex = 2 %}{% endif %}
+            {% if flow.vars.data.currentStep == 'userInfo' %}{% set currentStepIndex = 1 %}{% endif %}
+            {% if flow.vars.data.currentStep == 'experienceDetails' %}{% set currentStepIndex = 2 %}{% endif %}
             {% if flow.vars.data.currentStep == 'availability' %}{% set currentStepIndex = 3 %}{% endif %}
-            {% if flow.vars.data.currentStep == 'consent' %}{% set currentStepIndex = 4 %}{% endif %}
-            {% if flow.vars.data.currentStep == 'summary' %}{% set currentStepIndex = 5 %}{% endif %}
+            {% if flow.vars.data.currentStep == 'consentRGPD' %}{% set currentStepIndex = 4 %}{% endif %}
+            {% if flow.vars.data.currentStep == 'review' %}{% set currentStepIndex = 5 %}{% endif %}
             
             <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ (currentStepIndex / 5) * 100 }}%"></div>
         </div>
@@ -33,7 +33,7 @@
     <div class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
         {{ form_start(form) }}
             
-            {% if flow.vars.data.currentStep == 'summary' %}
+            {% if flow.vars.data.currentStep == 'review' %}
                 <h2 class="text-xl font-bold mb-4">Résumé de votre candidature</h2>
                 
                 <div class="mb-4">
